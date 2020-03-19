@@ -1,6 +1,6 @@
 ;/**
  * @author Pak Konstantin
- * @version 0.7
+ * @version 0.8
  */
 
 
@@ -11,7 +11,7 @@
 let PKBaseComponent = {
 	//root: null,
 	//parent: null,
-  //objParent - родительский компонент
+    //objParent - родительский компонент
 	// objBase - базовый компонент
 	//id: null, // nodeId
 	//node: null,
@@ -147,7 +147,7 @@ let PKBaseComponent = {
  */
 let createNewElement = function(tagName, id, classes, attributes, inner){
 	let elem = document.createElement(tagName);
-	elem.id = id;
+    if(id) elem.id = id;
 	//classes
 	for(let i = 0; i < classes.length; i++){
 		elem.classList.add(classes[i]);
