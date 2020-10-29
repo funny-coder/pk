@@ -1,6 +1,6 @@
 ;/**
  * @author Pak Konstantin
- * @version 0.9
+ * @version 0.10
  */
 
 (function () {
@@ -83,12 +83,11 @@ let PKBaseComponent = {
 	 */
 	sendEvent: function(event){
 		this.node.dispatchEvent(event);
-		if(this.eventsList[event.type] != undefined){	
-			for(let i = 0; i < this.children.length; i++){
-				if(this.eventsList[event.type].indexOf(this.children[i].id) != -1){
-					this.children[i].sendEvent(event);
-				}
-			}
+        for(let i = 0; i < this.children.length; i++){
+            if(this.eventsList[event.type] == undefined) break;
+            if(this.eventsList[event.type].indexOf(this.children[i]) != -1){
+                this.children[i].sendEvent(event);
+            }
 		}
 	},
 
@@ -115,43 +114,45 @@ let PKBaseComponent = {
 	listenEvent: function(eventName, func, options){
 		this.node.addEventListener(eventName, func, options);
 		// оповестить родителей
-		if(this.parent) {this.addChildrenEvent(this.id, eventName);}
+		if(this.parent) {this.addChildrenEvent(this, eventName);}
 	},
 
 	unlistenEvent: function(eventName, func){
 		this.node.removeEventListener(eventName, func);
 		// оповестить родителей
-		if(this.parent) {this.removeChildrenEvent(this.id, eventName);}
+		if(this.parent) {this.removeChildrenEvent(this, eventName);}
 	},
 
 	/**
 	 * Зарегистрировать событие, навешенное на дочерний компонент
 	 */
-	addChildrenEvent: function(childrenId , eventName){
+	//addChildrenEvent: function(childrenId , eventName){
+	addChildrenEvent: function(child , eventName){
 		if(this.eventsList[eventName] == undefined){
 			this.eventsList[eventName] = [];
 			// передать родителю
 			if(this.parent && this.eventsList[eventName]){
-				this.parent.addChildrenEvent(this.id, eventName);
+				this.parent.addChildrenEvent(this, eventName);
 			}
 		}
 
 		// и добавить в свой список
-		if(this.eventsList[eventName].indexOf(childrenId) == -1){
-			this.eventsList[eventName].push(childrenId);
+        if(this.eventsList[eventName].indexOf(child) == -1){
+			this.eventsList[eventName].push(child);
 		}
 	},
 
 	/**
 	 * Удалить дочернее событие. из своего списка событий и из родительских
 	 */
-	removeChildrenEvent: function(childrenId, eventName){
+	removeChildrenEvent: function(child, eventName){
 		if(this.eventsList[eventName] != undefined){
-			this.eventsList[eventName].splice(this.eventsList[eventName].indexOf(childrenId));
+			this.eventsList[eventName].splice(this.eventsList[eventName].indexOf(child));
 			if(this.eventsList[eventName].length == 0){
-				this.eventsList[eventName] = undefined;
+                this.eventsList[eventName] = undefined;
+
 				if(this.parent){
-					this.parent.removeChildrenEvent(this.id, eventName);
+					this.parent.removeChildrenEvent(this, eventName);
 				}
 			}
 		}
