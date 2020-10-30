@@ -1,6 +1,6 @@
 ;/**
  * @author Pak Konstantin
- * @version 0.10
+ * @version 0.11
  */
 
 (function () {
@@ -147,7 +147,7 @@ let PKBaseComponent = {
 	 */
 	removeChildrenEvent: function(child, eventName){
 		if(this.eventsList[eventName] != undefined){
-			this.eventsList[eventName].splice(this.eventsList[eventName].indexOf(child));
+			this.eventsList[eventName].splice(this.eventsList[eventName].indexOf(child),1);
 			if(this.eventsList[eventName].length == 0){
                 this.eventsList[eventName] = undefined;
 
