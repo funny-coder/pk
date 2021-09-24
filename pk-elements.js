@@ -1,6 +1,6 @@
 ;/**
  * @author Pak Konstantin
- * @version 0.11
+ * @version 3.14
  */
 
 (function () {
@@ -41,7 +41,8 @@ let PKBaseComponent = {
 	//node: null,
 	//children: [], // дочерние компоненты
 	//eventsList: {}, // коллекция навешенных событий на дочерние компоненты 'eventName': nodesId[]
-	initialize: function(target, objParent, objBase){
+	initialize: function(target, objParent){
+        
 		if(typeof(target) == "string"){
 			this.id = target;
 			this.node = document.getElementById(this.id);
@@ -57,10 +58,24 @@ let PKBaseComponent = {
 		else{
 			console.warn("element '"+ target + "' must be string or object");
 		}
+        //obj = this;
 		
-		(objParent)? this.parent = objParent : this.parent = null; 
-		(objBase)? this.base = objBase : this.base = null; 
-		if(this.parent){
+		if(objParent){
+            this.parent = objParent;
+            if(objParent.base){
+                this.base = objParent.base;
+            }
+            else{
+                this.base = objParent;
+            }
+            
+        }
+        else{ 
+            this.parent = null; 
+            this.base = null;
+        }
+		
+        if(this.parent){
 			this.root = this.parent.root;
 			this.parent.registerObject(this);
 		}
@@ -69,7 +84,7 @@ let PKBaseComponent = {
 		}
 		this.children = [];
 		this.eventsList = {};
-		
+        this.listeners = {};
 	},
 	// зарегистрировать подчиненный компонент
 	registerObject : function(obj){
@@ -82,18 +97,19 @@ let PKBaseComponent = {
 	 * @param {Event} event
 	 */
 	sendEvent: function(event){
-		this.node.dispatchEvent(event);
         for(let i = 0; i < this.children.length; i++){
             if(this.eventsList[event.type] == undefined) break;
             if(this.eventsList[event.type].indexOf(this.children[i]) != -1){
                 this.children[i].sendEvent(event);
             }
 		}
+        this.node.dispatchEvent(event);
 	},
 
 	/**
 	 * Запускает глобальное событие
 	 * @param {Event} event
+	 * @param {mixed} params
 	 */
 	globalEvent: function(event){
 		(this.parent)? this.parent.globalEvent(event) : this.localEvent(event);
@@ -109,16 +125,21 @@ let PKBaseComponent = {
 		this.sendEvent(event);
 	},
 
-
 	// добавить прослушку события
 	listenEvent: function(eventName, func, options){
-		this.node.addEventListener(eventName, func, options);
-		// оповестить родителей
-		if(this.parent) {this.addChildrenEvent(this, eventName);}
+        //this.listeners.push();
+        this.node.addEventListener(eventName, func, options);
+        // оповестить родителей
+        this.listeners[eventName + '_' + func.name] = {'eventName': eventName, 'funcName':func.name ,'func': func}; 
+        if(this.parent) {this.addChildrenEvent(this, eventName);}
+        
 	},
 
 	unlistenEvent: function(eventName, func){
 		this.node.removeEventListener(eventName, func);
+        if(func && eventName){
+            delete this.listeners[eventName + '_' + func.name];
+        }
 		// оповестить родителей
 		if(this.parent) {this.removeChildrenEvent(this, eventName);}
 	},
@@ -156,7 +177,18 @@ let PKBaseComponent = {
 				}
 			}
 		}
-	}
+	},
+
+    stopListening: function(){
+        for(let i = 0; i < this.children.length; i++){
+            this.children[i].stopListening();
+        }
+        for(key in this.listeners){
+            if(this.listeners[key].func){
+                this.unlistenEvent(this.listeners[key].eventName, this.listeners[key].func);
+            }
+        }
+    }
 };
 
 
